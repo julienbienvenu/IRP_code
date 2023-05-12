@@ -71,6 +71,8 @@ def accuracy(y_true, y_pred):
     y_true_flat = tf.keras.layers.Flatten()(y_true)
     y_pred_flat = tf.keras.layers.Flatten()(y_pred)
 
+    y_pred_flat = tf.squeeze(y_pred, axis=-1)
+
     # Count the number of correct 1s
     correct_ones = tf.reduce_sum(tf.cast(tf.logical_and(tf.equal(y_true_flat, 1), tf.equal(tf.round(y_pred_flat), 1)), dtype=tf.float32))
 
@@ -100,17 +102,19 @@ def define_autoencoder():
         tf.keras.layers.Conv2D(32, kernel_size=3, activation='relu', padding='same'),
         tf.keras.layers.UpSampling2D(size=(2, 2)),
         tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.UpSampling2D(size=(2, 2)),
+        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
         tf.keras.layers.Conv2D(1, kernel_size=3, activation='sigmoid', padding='same')
     ])
 
     return autoencoder
 
-
-
 def run_model(autoencoder, X_train, X_test, y_train, y_test, epochs=20):
 
     history = History()
     early_stop = EarlyStopping(monitor='loss', patience=25)
+
+    print(f'Dataset : Train {len(X_train)}/{len(y_train)}, Test {len(X_test)}/{len(y_test)}')
 
     autoencoder.compile(optimizer='adam', loss=loss, metrics=[accuracy])
     autoencoder.fit(X_train, y_train, epochs=epochs, batch_size=16, verbose = 1, validation_data=(X_test, y_test), callbacks=[history, early_stop])

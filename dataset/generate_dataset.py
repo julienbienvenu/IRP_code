@@ -13,15 +13,16 @@ def retrieve_tif():
     Input : no input
     Output : list of 
     '''
+    
     ''' Get the data '''
     # Get the files
     directory = 'dataset/tif/'
     files = os.listdir(directory)
     tif_files = [os.path.join(directory, f) for f in files if f.endswith('.tif')]
 
-    tif_files = tif_files[:1]
+    tif_files = tif_files[:2]
 
-    print(len(tif_files))
+    # print(len(tif_files))
     
     for file in tif_files:
 

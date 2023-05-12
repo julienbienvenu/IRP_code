@@ -1,4 +1,7 @@
 # Code explanation
+This project will look to use deep learning methods such as auto encoders to 
+produce abstract maps that capture the topological properties such that the error in path length from 
+the true map is minimised for a fixed calculation time.
 
 ## Modules
 ### Plot
