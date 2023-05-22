@@ -13,4 +13,4 @@ main.py : Run this function to execute the code
 
 ### dataset/
 - generate_dataset.py : this function generate a full dataset based on the .tif files
-- 
+- 625 images per .tif file

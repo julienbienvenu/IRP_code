@@ -20,8 +20,6 @@ def retrieve_tif():
     files = os.listdir(directory)
     tif_files = [os.path.join(directory, f) for f in files if f.endswith('.tif')]
 
-    tif_files = tif_files[:2]
-
     # print(len(tif_files))
     
     for file in tif_files:
@@ -65,7 +63,9 @@ def retrieve_tif():
                 new_grid_norm = (new_grid - np.nanmin(new_grid)) / (np.nanmax(new_grid) - np.nanmin(new_grid))
 
                 # Add the new grid to the list of grids
-                grids.append(new_grid_norm)
+                grids.append(new_grid_norm)    
+
+    print(f"Max values : {len(grids)}")        
 
     return grids
 
@@ -87,7 +87,7 @@ def generate_labels(grids):
         label_grid = np.zeros((max_range, max_range))
         for cell in path_dijkstra:
             x, y = cell
-            label_grid[y][x] = 1
+            label_grid[y][x] = 0.5
 
         label_grids.append(label_grid)
 
