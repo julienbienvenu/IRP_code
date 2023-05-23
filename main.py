@@ -8,7 +8,7 @@ from dataset.generate_dataset import generate_tif_dataset
 def main():
 
     # Generate dataset
-    X_train, X_test, y_train, y_test = generate_tif_dataset(max_values = 100)
+    X_train, X_test, y_train, y_test = generate_tif_dataset()
     
     # Load and compile the model
     size = X_train[0].shape[0]
