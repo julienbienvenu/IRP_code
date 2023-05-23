@@ -77,8 +77,10 @@ def generate_labels(grids):
         
         # Define the start and end points
         max_range = grid.shape[0]
-        start = (random.randint(0, max_range-1), random.randint(0, max_range-1))
-        end = (random.randint(0, max_range-1), random.randint(0, max_range-1))
+        # start = (random.randint(0, max_range-1), random.randint(0, max_range-1))
+        # end = (random.randint(0, max_range-1), random.randint(0, max_range-1))
+        start = (25, 25)
+        end = (75, 75)
         
         # Run algorithm
         path_dijkstra = dijkstra(grid, start, end)
