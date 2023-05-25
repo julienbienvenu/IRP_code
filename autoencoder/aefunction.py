@@ -2,6 +2,7 @@ import tensorflow as tf
 from keras.callbacks import History
 from keras.models import save_model
 from keras.callbacks import EarlyStopping
+from keras.callbacks import ModelCheckpoint
 
 '''
 Autoencoder :
@@ -36,7 +37,7 @@ def accuracy_0(y_true, y_pred):
 
     # Count the total number of ones
     correct_ones = tf.reduce_sum(tf.cast(tf.logical_and(tf.greater(y_true_flat, 0.25), tf.greater(y_pred_flat, 0.25)), dtype=tf.float32))
-    total_ones = tf.reduce_sum(tf.cast(tf.equal(y_true_flat, 0.0), dtype=tf.float32))
+    total_ones = tf.reduce_sum(tf.cast(tf.equal(y_true_flat, 0.5), dtype=tf.float32))
 
     # Print the result
     return (correct_ones / total_ones)
@@ -52,10 +53,19 @@ def accuracy_00(y_true, y_pred):
 
     # Count the total number of ones
     correct_ones = tf.reduce_sum(tf.cast(tf.logical_and(tf.greater(y_true_flat, 0.0), tf.greater(y_pred_flat, 0.0)), dtype=tf.float32))
-    total_ones = tf.reduce_sum(tf.cast(tf.equal(y_true_flat, 0.0), dtype=tf.float32))
+    total_ones = tf.reduce_sum(tf.cast(tf.equal(y_true_flat, 0.5), dtype=tf.float32))
 
     # Print the result
     return (correct_ones / total_ones)
+
+def ones_count_loss(y_true, y_pred):
+    # Count the number of ones in the target and predicted outputs
+    ones_true = tf.reduce_sum(y_true)
+    ones_pred = tf.reduce_sum(y_pred)
+
+    # Calculate the absolute difference
+    loss = tf.abs(ones_true - ones_pred)
+    return loss
 
 
 def loss(y_true, y_pred):
@@ -92,20 +102,33 @@ def loss(y_true, y_pred):
 def define_autoencoder():
     input_shape = (100, 100, 1)
     autoencoder = tf.keras.Sequential([
-        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same', input_shape=input_shape),   
+        tf.keras.layers.Conv2D(1024, kernel_size=3, activation='relu', padding='same', input_shape=input_shape), 
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'),    
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'),    
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'),    
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),    
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),    
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),    
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),    
         tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.MaxPooling2D(pool_size=(2, 2)),
-        tf.keras.layers.Conv2D(32, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(32, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(32, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(32, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.UpSampling2D(size=(2, 2)),
-        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
-        tf.keras.layers.Conv2D(64, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(128, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(256, kernel_size=3, activation='relu', padding='same'),
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(512, kernel_size=3, activation='relu', padding='same'), 
+        tf.keras.layers.Conv2D(1024, kernel_size=3, activation='relu', padding='same'),
         tf.keras.layers.Conv2D(1, kernel_size=3, activation='sigmoid', padding='same')
     ])
 
@@ -117,8 +140,14 @@ def run_model(autoencoder, X_train, X_test, y_train, y_test, epochs=500):
     early_stop = EarlyStopping(monitor='loss', patience=500)
     print(f'Dataset : Train {len(X_train)}/{len(y_train)}, Test {len(X_test)}/{len(y_test)}')
 
-    autoencoder.compile(optimizer='adam', loss='mse', metrics=[accuracy_00, accuracy_0, accuracy_1])
-    autoencoder.fit(X_train, y_train, epochs=epochs, batch_size=16, verbose = 1, validation_data=(X_test, y_test), callbacks=[history, early_stop])
+    # Define the model checkpoint callback
+    checkpoint = ModelCheckpoint('autoencoder/autoencoder_model.h5', 
+                                save_weights_only=False,  # Save the entire model
+                                save_freq='epoch',        # Save every epoch
+                                period=20) 
+
+    autoencoder.compile(optimizer='adam', loss=ones_count_loss, metrics=[accuracy_00, accuracy_0, accuracy_1])
+    autoencoder.fit(X_train, y_train, epochs=epochs, batch_size=16, verbose = 1, validation_data=(X_test, y_test), callbacks=[history, early_stop, checkpoint])
     
     save_model(autoencoder, 'autoencoder/autoencoder_model.h5')
 

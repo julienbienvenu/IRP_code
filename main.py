@@ -15,7 +15,7 @@ def main():
     autoencoder = define_autoencoder()
 
     # Run the model
-    autoencoder, history = run_model(autoencoder, X_train, X_test, y_train, y_test, epochs = 10000)
+    autoencoder, history = run_model(autoencoder, X_train, X_test, y_train, y_test, epochs = 150)
 
     # Retrieve the resuls
     test_model(autoencoder, X_test, y_test)

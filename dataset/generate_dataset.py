@@ -20,7 +20,8 @@ def retrieve_tif():
     files = os.listdir(directory)
     tif_files = [os.path.join(directory, f) for f in files if f.endswith('.tif')]
 
-    # print(len(tif_files))
+    # Create a list to store the 100x100 grids
+    grids = []
     
     for file in tif_files:
 
@@ -41,10 +42,7 @@ def retrieve_tif():
 
         # Determine the number of 100x100 grids that can fit within the original grid
         num_horizontal_grids = original_grid.shape[1] // 100
-        num_vertical_grids = original_grid.shape[0] // 100
-
-        # Create a list to store the 100x100 grids
-        grids = []
+        num_vertical_grids = original_grid.shape[0] // 100        
 
         # Loop through each horizontal and vertical grid
         for i in range(num_vertical_grids):
@@ -69,12 +67,13 @@ def retrieve_tif():
 
     return grids
 
-def generate_labels(grids):
+import concurrent.futures
+from tqdm import tqdm
 
+def generate_labels(grids):
     label_grids = []
 
-    for grid in grids:
-        
+    def process_grid(grid):
         # Define the start and end points
         max_range = grid.shape[0]
         # start = (random.randint(0, max_range-1), random.randint(0, max_range-1))
@@ -91,7 +90,25 @@ def generate_labels(grids):
             x, y = cell
             label_grid[y][x] = 0.5
 
-        label_grids.append(label_grid)
+        return label_grid
+
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        # Process each grid concurrently
+        futures = [executor.submit(process_grid, grid) for grid in grids]
+
+        # Create a progress bar
+        progress_bar = tqdm(total=len(futures))
+
+        # Retrieve the results
+        for future in concurrent.futures.as_completed(futures):
+            label_grid = future.result()
+            label_grids.append(label_grid)
+
+            # Update the progress bar
+            progress_bar.update(1)
+
+        # Close the progress bar
+        progress_bar.close()
 
     return label_grids
 
